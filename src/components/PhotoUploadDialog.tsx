@@ -12,7 +12,7 @@ import {
 } from "./ui/dialog";
 import { Textarea } from "./ui/textarea";
 import { Alert, AlertDescription } from "./ui/alert";
-import { Camera, Upload, X, Loader2 } from "lucide-react";
+import { Camera, Upload, X, Loader as Loader2 } from "lucide-react";
 import { CameraCapture } from "./CameraCapture";
 
 interface PhotoUploadDialogProps {
@@ -96,15 +96,11 @@ export function PhotoUploadDialog({
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("progress-photos").getPublicUrl(fileName);
-
-      // Create database record
+      // Store the path in the database (not the full URL)
+      // We'll generate signed URLs when fetching
       const { error: dbError } = await supabase.from("progress_photos").insert({
         user_id: userId,
-        photo_url: publicUrl,
+        photo_url: fileName,
         note: note.trim() || null,
       });
 

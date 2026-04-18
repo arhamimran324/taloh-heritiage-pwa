@@ -10,14 +10,14 @@ const CartPage = () => {
     return (
       <div className="container mx-auto flex min-h-[60vh] flex-col items-center justify-center px-4">
         <ShoppingBag className="h-16 w-16 text-muted-foreground/40" />
-        <h2 className="mt-4 font-display text-2xl font-bold text-foreground">Your cart is empty</h2>
-        <p className="mt-2 text-muted-foreground">Add some products to get started</p>
+        <h2 className="mt-4 font-display text-2xl font-bold text-foreground">Cart Empty</h2>
+        <p className="mt-2 text-muted-foreground">Start building your transformation</p>
         <Link
           to="/"
           className="mt-6 inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
-          Continue Shopping
+Shop Now
         </Link>
       </div>
     );

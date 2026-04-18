@@ -14,6 +14,7 @@ import {
 import { Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
+import logo from "@/assets/logo-transparent.png";
 
 const RegisterPage = () => {
   const [name, setName] = useState("");
@@ -65,15 +66,20 @@ const RegisterPage = () => {
         },
       ]);
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error("Profile creation error:", profileError);
+        await supabase.auth.signOut();
+        throw new Error("Failed to create user profile. Please try again.");
+      }
 
       toast({
         title: "Account created!",
         description: "Welcome to Shelton Hair Co.",
       });
 
-      navigate("/");
+      navigate("/home");
     } catch (error: any) {
+      console.error("Registration error:", error);
       toast({
         title: "Error",
         description: error.message || "Something went wrong",
@@ -85,14 +91,29 @@ const RegisterPage = () => {
   };
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12">
-      <Card className="w-full max-w-md border-border/50 shadow-lg">
-        <CardHeader className="text-center">
-          <CardTitle className="font-display text-2xl">
-            Create Account
+    <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12 relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-accent/5" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent" />
+
+      <Card className="relative w-full max-w-md border-primary/20 shadow-2xl shadow-primary/10 bg-card/80 backdrop-blur-sm">
+        <CardHeader className="text-center space-y-4 pb-6">
+          <div className="flex justify-center mb-2">
+            <img
+              src={logo}
+              alt="Taloh's Hairitage"
+              className="h-16 w-auto"
+              style={{
+                filter: 'drop-shadow(0 0 8px hsl(180 95% 55% / 0.15)) drop-shadow(0 0 16px hsl(43 100% 62% / 0.1))'
+              }}
+            />
+          </div>
+          <CardTitle className="font-display text-3xl">
+            <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              Create Account
+            </span>
           </CardTitle>
-          <CardDescription>
-            Join Shelton Hair Co. for the best hair care
+          <CardDescription className="text-base">
+            Start your transformation today
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
@@ -166,15 +187,19 @@ const RegisterPage = () => {
               />
             </div>
           </CardContent>
-          <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" className="w-full" disabled={loading}>
+          <CardFooter className="flex flex-col gap-4 pt-6">
+            <Button
+              type="submit"
+              className="w-full h-12 font-bold rounded-xl bg-gradient-to-r from-accent to-accent/90 shadow-2xl shadow-accent/50 hover:shadow-accent/70 glow-gold text-base"
+              disabled={loading}
+            >
               {loading ? "Creating account…" : "Create Account"}
             </Button>
             <p className="text-center text-sm text-muted-foreground">
-              Already have an account?{" "}
+              Already a member?{" "}
               <Link
                 to="/login"
-                className="font-medium text-primary hover:underline"
+                className="font-bold text-primary hover:text-accent hover:underline transition-colors"
               >
                 Sign in
               </Link>

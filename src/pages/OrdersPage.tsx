@@ -3,19 +3,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { HashLoader } from "react-spinners";
-import {
-  Package,
-  ChevronRight,
-  Clock,
-  CheckCircle,
-  XCircle,
-  Truck,
-  CreditCard,
-  AlertCircle,
-  Search,
-  ShoppingBag,
-  Filter,
-} from "lucide-react";
+import { Package, ChevronRight, Clock, CircleCheck as CheckCircle, Circle as XCircle, Truck, CreditCard, CircleAlert as AlertCircle, Search, ShoppingBag, ListFilter as Filter } from "lucide-react";
 
 interface Order {
   id: number;
@@ -369,17 +357,16 @@ export default function OrdersPage() {
                   <ShoppingBag className="w-10 h-10 sm:w-12 sm:h-12 text-[#AB672B]" />
                 </div>
                 <h3 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-2 sm:mb-3">
-                  No orders yet
+                  Ready to Start?
                 </h3>
                 <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">
-                  Looks like you haven't placed any orders yet. Start shopping
-                  to see your orders here!
+                  Your transformation begins with your first order.
                 </p>
                 <Link
                   to="/#products"
                   className="inline-flex items-center gap-2 px-5 py-2.5 sm:px-6 sm:py-3 bg-[#AB672B] text-white rounded-xl hover:bg-[#8B4F1F] transition-all text-sm sm:text-base font-medium shadow-lg"
                 >
-                  Start Shopping
+Shop Now
                   <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
                 </Link>
               </div>

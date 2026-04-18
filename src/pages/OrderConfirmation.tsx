@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { CheckCircle2 } from "lucide-react";
+import { CircleCheck as CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
 
 const OrderConfirmation = () => {
@@ -14,15 +14,15 @@ const OrderConfirmation = () => {
           <CheckCircle2 className="h-8 w-8 text-success" />
         </div>
         <h1 className="mt-4 font-display text-2xl font-bold text-card-foreground">
-          Order Placed Successfully!
+          Order Confirmed!
         </h1>
-        <p className="mt-2 text-muted-foreground">Thank you for your order.</p>
+        <p className="mt-2 text-muted-foreground">Your transformation is on its way.</p>
 
         <Link
           to="/"
           className="mt-8 inline-block rounded-lg bg-primary px-6 py-2.5 font-medium text-primary-foreground"
         >
-          Continue Shopping
+          Back to Home
         </Link>
       </motion.div>
     </div>

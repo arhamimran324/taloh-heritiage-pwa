@@ -1,11 +1,12 @@
-import hairSolutionImg from "@/assets/hair-solution.jpg";
-import shampooImg from "@/assets/shampoo.jpg";
-import bundleImg from "@/assets/bundle.jpg";
+import hairSolutionImg from "@/assets/WhatsApp_Image_2026-04-02_at_10.11.42_PM.jpeg";
+import shampooImg from "@/assets/file_00000000032471fd87ac64c15b4be91e.png";
+import bundleImg from "@/assets/file_000000009d2c71f8bfffa2a94b1be3a6_ujyyfg.png";
 
 export interface Product {
   id: string;
   name: string;
   price: number;
+  originalPrice?: number;
   description: string;
   image: string;
   active: boolean;
@@ -21,7 +22,7 @@ export const products: Product[] = [
     id: "1",
     name: "Hair Solution",
     price: 25,
-    description: "Premium hair growth solution for stronger, healthier hair. Delivery included.",
+    description: "Power-packed formula for explosive growth. Stronger, thicker, unstoppable hair. Free delivery.",
     image: hairSolutionImg,
     active: true,
   },
@@ -29,7 +30,7 @@ export const products: Product[] = [
     id: "2",
     name: "Shampoo",
     price: 15,
-    description: "Nourishing shampoo for daily use. Gently cleanses and restores shine. Delivery included.",
+    description: "Deep-cleanse daily. Revive natural shine. Fortify every strand. Free delivery.",
     image: shampooImg,
     active: true,
   },
@@ -37,7 +38,8 @@ export const products: Product[] = [
     id: "3",
     name: "Bundle (3 Solutions + 1 Shampoo)",
     price: 80,
-    description: "Complete hair care bundle — 3 Hair Solutions + 1 Shampoo. Best value. Delivery included.",
+    originalPrice: 90,
+    description: "Complete arsenal — 3 Hair Solutions + 1 Shampoo. Maximum impact. Best value. Free delivery.",
     image: bundleImg,
     active: true,
   },

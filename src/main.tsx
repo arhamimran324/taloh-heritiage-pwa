@@ -36,10 +36,13 @@ if ("serviceWorker" in navigator) {
         console.log("Service Worker update found:", newWorker);
       });
     } catch (error) {
-      console.error("Service Worker registration failed:", error);
+      console.warn("Service Worker not supported in this environment:", error.message);
     }
   });
 }
+
+// Set dark mode by default for premium aesthetic
+document.documentElement.classList.add('dark');
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

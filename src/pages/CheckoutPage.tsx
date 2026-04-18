@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Shield, Ban } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
@@ -21,6 +21,7 @@ const CheckoutPage = () => {
   });
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("online");
   const [submitting, setSubmitting] = useState(false);
+  const [refundAcknowledged, setRefundAcknowledged] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -60,6 +61,11 @@ const CheckoutPage = () => {
 
     if (!form.customerName || !form.email || !form.phone || !form.address) {
       toast.error("Please fill in all required fields");
+      return;
+    }
+
+    if (!refundAcknowledged) {
+      toast.error("Please acknowledge the refund and continuity disclaimer");
       return;
     }
 
@@ -131,7 +137,6 @@ const CheckoutPage = () => {
           }),
         },
       );
-      clearCart();
 
       // 5️⃣ If online payment, call create-payment and redirect
       if (paymentMethod === "online") {
@@ -155,16 +160,27 @@ const CheckoutPage = () => {
           },
         );
 
+        if (!res.ok) {
+          const errorText = await res.text();
+          console.error("Payment creation failed:", errorText);
+          throw new Error(`Failed to create payment: ${errorText}`);
+        }
+
         const data = await res.json();
 
-        if (!res.ok || !data.url) throw new Error("Failed to create payment");
+        if (!data.url) {
+          console.error("No URL in response:", data);
+          throw new Error("Payment URL not received");
+        }
 
+        clearCart();
         // Redirect to Fygaro checkout
         window.location.href = data.url;
         return; // stop further execution
       }
 
       // 6️⃣ Clear cart and navigate (for COD)
+      clearCart();
       navigate("/order-confirmation");
     } catch (error: any) {
       console.error(error);
@@ -202,10 +218,8 @@ const CheckoutPage = () => {
                 value={form.customerName}
                 onChange={handleChange}
                 required
-                className="w-full rounded-lg border border-input px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring bg-muted"
+                className="w-full rounded-lg border border-input px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring bg-background"
                 placeholder="Your full name"
-                disabled
-                readOnly
               />
             </div>
             <div>
@@ -218,10 +232,8 @@ const CheckoutPage = () => {
                 onChange={handleChange}
                 required
                 type="tel"
-                className="w-full rounded-lg border border-input bg-muted px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full rounded-lg border border-input bg-background px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 placeholder="+1 242-XXX-XXXX"
-                disabled
-                readOnly
               />
             </div>
             <div>
@@ -234,10 +246,8 @@ const CheckoutPage = () => {
                 onChange={handleChange}
                 required
                 type="email"
-                className="w-full rounded-lg border border-input bg-muted px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full rounded-lg border border-input bg-background px-4 py-2.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                 placeholder="your@email.com"
-                disabled
-                readOnly
               />
             </div>
             <div>
@@ -273,13 +283,13 @@ const CheckoutPage = () => {
             <h3 className="font-display text-lg font-semibold text-card-foreground">
               Payment Method
             </h3>
-            <div className="">
+            <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => setPaymentMethod("online")}
                 className={`rounded-lg border-2 p-4 text-left transition-colors ${
                   paymentMethod === "online"
-                    ? "border-primary bg-accent"
+                    ? "border-primary bg-primary/10"
                     : "border-border hover:border-primary/50"
                 }`}
               >
@@ -288,19 +298,27 @@ const CheckoutPage = () => {
                   Card payment via secure gateway
                 </p>
               </button>
-              {/* <button
+              <button
                 type="button"
                 onClick={() => setPaymentMethod("cod")}
                 className={`rounded-lg border-2 p-4 text-left transition-colors ${
                   paymentMethod === "cod"
-                    ? "border-primary bg-accent"
+                    ? "border-primary bg-primary/10"
                     : "border-border hover:border-primary/50"
                 }`}
               >
-                <span className="font-medium text-foreground">Cash on Delivery</span>
-                <p className="mt-1 text-xs text-muted-foreground">Pay when your order arrives</p>
-              </button> */}
+                <span className="font-medium text-foreground">Pay in Cash</span>
+                <p className="mt-1 text-xs text-muted-foreground">Pay cash upon delivery</p>
+              </button>
             </div>
+            {paymentMethod === "cod" && (
+              <div className="flex items-start gap-2 rounded-lg bg-amber-500/10 border border-amber-500/30 px-4 py-3">
+                <Shield className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-amber-300 leading-relaxed">
+                  We encourage online purchases for both your safety and ours.
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -330,9 +348,65 @@ const CheckoutPage = () => {
               <span>${total}</span>
             </div>
           </div>
+
+          {/* Payment Disclaimer */}
+          <div className="mt-4 rounded-lg bg-muted/50 border border-border p-4">
+            <div className="flex gap-3">
+              <Shield className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold text-foreground">
+                  Payment & Transaction
+                </h4>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  All payments are securely processed through a third-party payment provider. Taloh's Hairitage does not store or process credit or debit card information.
+                </p>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  By completing a purchase, you authorize payment for the selected products and agree to the applicable refund, return, and shipping policies. Receipts are provided electronically for your records.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Refund Disclaimer */}
+          <div className="mt-4 rounded-lg bg-amber-500/10 border border-amber-500/30 p-4">
+            <div className="flex gap-3">
+              <Ban className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold text-foreground">
+                  Refund & Continuity Policy
+                </h4>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Due to the nature of hair restoration products, opened or used products are not eligible for refunds unless defective. Discontinuing use of the system may result in loss of progress, particularly for hereditary hair loss conditions.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Acknowledgment Checkbox */}
+          <div className="mt-4 flex items-start gap-3">
+            <input
+              type="checkbox"
+              id="refund-ack"
+              checked={refundAcknowledged}
+              onChange={(e) => setRefundAcknowledged(e.target.checked)}
+              className="mt-1 h-4 w-4 rounded border-input text-primary focus:ring-2 focus:ring-ring"
+            />
+            <label htmlFor="refund-ack" className="text-xs text-muted-foreground leading-relaxed cursor-pointer">
+              I acknowledge and agree to the{" "}
+              <Link
+                to="/disclaimer"
+                className="text-primary hover:underline"
+                target="_blank"
+              >
+                Refund & Continuity Policy
+              </Link>
+              {" "}and understand that opened products are not eligible for refunds unless defective.
+            </label>
+          </div>
+
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || !refundAcknowledged}
             className="mt-6 w-full rounded-lg bg-primary py-3 font-medium text-primary-foreground transition-colors hover:opacity-90 disabled:opacity-50"
           >
             {submitting

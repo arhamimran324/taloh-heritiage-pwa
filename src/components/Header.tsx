@@ -1,13 +1,5 @@
-import {
-  ShoppingCart,
-  User,
-  LogOut,
-  Bell,
-  Check,
-  Trash2,
-  Image,
-} from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { ShoppingCart, User, LogOut, Bell, Check, Trash2, Image, Circle as HelpCircle, CirclePlay as PlayCircle, ShieldAlert, Menu } from "lucide-react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
@@ -15,11 +7,15 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import notificationService from "@/services/notificationService";
 import { type Notification } from "@/types/notification";
 import { formatDistanceToNow } from "date-fns";
+import logo from "@/assets/logo-transparent.png";
 
 const Header = () => {
   const { itemCount, clearCart } = useCart();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isLandingPage = location.pathname === "/";
+  const shouldShowCart = !isLandingPage;
   const [menuOpen, setMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -223,72 +219,43 @@ const Header = () => {
   }, []);
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
+    <header className="sticky top-0 z-50 border-b border-primary/20 bg-background/95 backdrop-blur-xl shadow-lg shadow-primary/5 safe-top">
+      <div className="flex h-14 md:h-16 items-center justify-between px-4 max-w-screen-2xl mx-auto">
         <Link
-          to="/"
-          className="font-display text-xl font-bold tracking-tight text-foreground lg:w-1/12"
+          to={user ? "/home" : "/"}
+          className="flex items-center hover:opacity-90 transition-opacity active:scale-95"
         >
-          Hair Co.
+          <img
+            src={logo}
+            alt="Taloh's Hairitage"
+            className="h-16 md:h-20 w-auto"
+            style={{
+              filter: 'drop-shadow(0 0 8px hsl(180 95% 55% / 0.15)) drop-shadow(0 0 16px hsl(43 100% 62% / 0.1))'
+            }}
+          />
         </Link>
 
-        {/* Navigation Links - Visible on larger screens */}
-        {user && (
-          <nav className="hidden md:flex items-center gap-10">
-            <Link
-              to="/orders"
-              className="px-3 py-2 text-sm font-medium rounded-md hover:bg-muted transition-colors"
-            >
-              Orders
-            </Link>
-            <Link
-              to="/progress"
-              className="px-3 py-2 text-sm font-medium rounded-md hover:bg-muted transition-colors flex items-center gap-1"
-            >
-              Progress
-            </Link>
-            <Link
-              to="/reminders"
-              className="px-3 py-2 text-sm font-medium rounded-md hover:bg-muted transition-colors"
-            >
-              Reminders
-            </Link>
-          </nav>
-        )}
-
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-2">
           {/* CART */}
-          {email && (
+          {shouldShowCart && (
             <Link
               to="/cart"
-              className="relative flex items-center gap-2 rounded-full bg-primary px-3 sm:px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:opacity-90"
+              className="relative flex h-9 w-9 items-center justify-center rounded-full bg-muted hover:bg-muted/80 transition-colors"
+              aria-label="Shopping Cart"
             >
-              <ShoppingCart className="h-4 w-4" />
-              <span className="hidden sm:inline">Cart</span>
-
+              <ShoppingCart className="h-5 w-5" />
               <AnimatePresence>
                 {itemCount > 0 && (
                   <motion.span
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
                     exit={{ scale: 0 }}
-                    className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground"
+                    className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-background shadow-lg shadow-accent/50"
                   >
-                    {itemCount}
+                    {itemCount > 9 ? "9+" : itemCount}
                   </motion.span>
                 )}
               </AnimatePresence>
-            </Link>
-          )}
-
-          {/* PROGRESS - Mobile Link */}
-          {user && (
-            <Link
-              to="/progress"
-              className="md:hidden relative flex h-9 w-9 items-center justify-center rounded-full bg-muted hover:bg-muted/80 transition-colors"
-              aria-label="Progress"
-            >
-              <Image className="h-5 w-5" />
             </Link>
           )}
 
@@ -484,13 +451,13 @@ const Header = () => {
             <div className="flex gap-2 sm:gap-3 text-sm">
               <Link
                 to="/login"
-                className="px-3 sm:px-4 py-2 rounded-md bg-[#AB672B] text-white hover:bg-[#944F1F] transition whitespace-nowrap"
+                className="px-3 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-semibold hover:shadow-xl hover:shadow-primary/40 transition-all hover:scale-105 whitespace-nowrap"
               >
                 Login
               </Link>
               <Link
                 to="/register"
-                className="px-3 sm:px-4 py-2 rounded-md border border-[#AB672B] text-[#AB672B] hover:bg-[#AB672B] hover:text-white transition whitespace-nowrap"
+                className="px-3 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-accent to-accent/90 text-accent-foreground font-bold hover:shadow-xl hover:shadow-accent/50 transition-all hover:scale-105 whitespace-nowrap glow-gold"
               >
                 Register
               </Link>
@@ -503,7 +470,7 @@ const Header = () => {
                 aria-expanded={menuOpen}
                 aria-haspopup="true"
               >
-                <User className="h-5 w-5" />
+                <Menu className="h-5 w-5" />
               </button>
 
               <AnimatePresence>
@@ -523,14 +490,6 @@ const Header = () => {
                     </div>
 
                     <Link
-                      to="/profile"
-                      className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-muted transition-colors"
-                      onClick={() => setMenuOpen(false)}
-                    >
-                      <User className="h-4 w-4" /> Profile
-                    </Link>
-
-                    <Link
                       to="/orders"
                       className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-muted transition-colors"
                       onClick={() => setMenuOpen(false)}
@@ -539,19 +498,27 @@ const Header = () => {
                     </Link>
 
                     <Link
-                      to="/progress"
-                      className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-muted transition-colors md:hidden"
+                      to="/faq"
+                      className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-muted transition-colors"
                       onClick={() => setMenuOpen(false)}
                     >
-                      <Image className="h-4 w-4" /> Progress
+                      <HelpCircle className="h-4 w-4" /> FAQ
                     </Link>
 
                     <Link
-                      to="/reminders"
-                      className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-muted transition-colors md:hidden"
+                      to="/tutorials"
+                      className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-muted transition-colors"
                       onClick={() => setMenuOpen(false)}
                     >
-                      <Bell className="h-4 w-4" /> Reminders
+                      <PlayCircle className="h-4 w-4" /> Tutorials
+                    </Link>
+
+                    <Link
+                      to="/disclaimer"
+                      className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-muted transition-colors"
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      <ShieldAlert className="h-4 w-4" /> Disclaimer
                     </Link>
 
                     <button
