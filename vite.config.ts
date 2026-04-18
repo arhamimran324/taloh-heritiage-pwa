@@ -14,8 +14,8 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       manifest: {
-        name: "Hair Co. Shop",
-        short_name: "HairCo",
+        name: "Talohs Hairitage",
+        short_name: "Talohs Hairitage",
         description: "Order premium hair products online",
         theme_color: "#70B6B4", // icon background / app theme color
         background_color: "#70B6B4",

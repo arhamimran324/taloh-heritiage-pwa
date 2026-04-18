@@ -74,7 +74,7 @@ const RegisterPage = () => {
 
       toast({
         title: "Account created!",
-        description: "Welcome to Shelton Hair Co.",
+        description: "Welcome to Talohs Hairitage.",
       });
 
       navigate("/home");

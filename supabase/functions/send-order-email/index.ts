@@ -36,7 +36,7 @@ serve(async (req) => {
     });
 
     await transporter.sendMail({
-      from: `"Hair Store" <${Deno.env.get("GMAIL_USER")}>`,
+      from: `"Talohs Hairitage" <${Deno.env.get("GMAIL_USER")}>`,
       to: email,
       subject: `Order Confirmation - ${orderNumber}`,
       text: `Hi ${customerName}, your order has been received.`,
