@@ -88,7 +88,7 @@ const CheckoutPage = () => {
             notes: form.notes || null,
             total,
             payment_method: paymentMethod,
-            payment_status: paymentMethod === "online" ? "Pending" : "Paid",
+            payment_status: "pending",
             email: form.email,
             delivery_status: "Preparing",
           },

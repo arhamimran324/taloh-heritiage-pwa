@@ -1,27 +1,73 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Bell, Droplets, Sparkles, Clock } from "lucide-react";
+import { Bell, Droplets, Sparkles, Clock, CheckCircle2 } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
+import { registerPush } from "@/utils/pushNotifications";
+import { Button } from "@/components/ui/button";
 
 const RemindersPage = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [solutionEnabled, setSolutionEnabled] = useState(true);
+  const [solutionEnabled, setSolutionEnabled] = useState(false);
   const [shampooEnabled, setShampooEnabled] = useState(false);
   const [shampooFrequency, setShampooFrequency] = useState<"24" | "48">("24");
   const [solutionTime, setSolutionTime] = useState("09:00");
   const [shampooTime, setShampooTime] = useState("08:00");
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [checkingPushStatus, setCheckingPushStatus] = useState(false);
 
   useEffect(() => {
     if (user) {
       loadReminderSettings();
     }
   }, [user]);
+
+  const checkPushStatus = async () => {
+    if (!user) return;
+
+    setCheckingPushStatus(true);
+    try {
+      const { data, error } = await supabase
+        .from("push_subscriptions")
+        .select("*")
+        .eq("user_id", user.id);
+
+      if (!error && data && data.length > 0) {
+        setPushEnabled(true);
+      }
+    } catch (error) {
+      console.error("Error checking push status:", error);
+    } finally {
+      setCheckingPushStatus(false);
+    }
+  };
+
+  // Add this function to enable push notifications
+  const enablePushNotifications = async () => {
+    if (!user) return;
+
+    try {
+      await registerPush(user.id);
+      await checkPushStatus();
+      toast.success("Push notifications enabled successfully!");
+    } catch (error) {
+      console.error("Error enabling push notifications:", error);
+      toast.error("Failed to enable push notifications");
+    }
+  };
+
+  // Add this useEffect to check push status on load
+  useEffect(() => {
+    if (user) {
+      checkPushStatus();
+    }
+  }, [user]);
+
 
   const loadReminderSettings = async () => {
     try {
@@ -185,11 +231,10 @@ const RemindersPage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className={`relative overflow-hidden rounded-3xl border transition-all duration-300 ${
-              solutionEnabled
+            className={`relative overflow-hidden rounded-3xl border transition-all duration-300 ${solutionEnabled
                 ? "border-primary/40 bg-gradient-to-br from-card via-card to-primary/5 shadow-2xl shadow-primary/20"
                 : "border-primary/20 bg-card/50 shadow-lg shadow-primary/10"
-            }`}
+              }`}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-50" />
             {solutionEnabled && (
@@ -227,15 +272,13 @@ const RemindersPage = () => {
                   </div>
 
                   <div
-                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
-                      solutionEnabled
+                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${solutionEnabled
                         ? "bg-primary/20 text-primary border border-primary/40"
                         : "bg-muted/50 text-muted-foreground border border-border/50"
-                    }`}
+                      }`}
                   >
-                    <span className={`w-2 h-2 rounded-full ${
-                      solutionEnabled ? "bg-primary animate-pulse" : "bg-muted-foreground/50"
-                    }`} />
+                    <span className={`w-2 h-2 rounded-full ${solutionEnabled ? "bg-primary animate-pulse" : "bg-muted-foreground/50"
+                      }`} />
                     {solutionEnabled ? "Active" : "Inactive"}
                   </div>
                 </div>
@@ -279,11 +322,10 @@ const RemindersPage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className={`relative overflow-hidden rounded-3xl border transition-all duration-300 ${
-              shampooEnabled
+            className={`relative overflow-hidden rounded-3xl border transition-all duration-300 ${shampooEnabled
                 ? "border-accent/40 bg-gradient-to-br from-card via-card to-accent/5 shadow-2xl shadow-accent/20"
                 : "border-primary/20 bg-card/50 shadow-lg shadow-primary/10"
-            }`}
+              }`}
           >
             <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-primary/5 opacity-50" />
             {shampooEnabled && (
@@ -310,11 +352,10 @@ const RemindersPage = () => {
                         whileTap={{ scale: 0.97 }}
                         onClick={() => handleShampooFrequencyChange("24")}
                         disabled={saving}
-                        className={`flex-1 px-6 py-4 rounded-2xl font-semibold transition-all duration-300 touch-manipulation min-h-[56px] disabled:opacity-50 ${
-                          shampooFrequency === "24"
+                        className={`flex-1 px-6 py-4 rounded-2xl font-semibold transition-all duration-300 touch-manipulation min-h-[56px] disabled:opacity-50 ${shampooFrequency === "24"
                             ? "bg-gradient-to-r from-accent to-accent/90 text-accent-foreground shadow-xl shadow-accent/40"
                             : "bg-muted/50 text-muted-foreground border border-border/50 hover:bg-muted"
-                        }`}
+                          }`}
                       >
                         24 hours
                       </motion.button>
@@ -322,11 +363,10 @@ const RemindersPage = () => {
                         whileTap={{ scale: 0.97 }}
                         onClick={() => handleShampooFrequencyChange("48")}
                         disabled={saving}
-                        className={`flex-1 px-6 py-4 rounded-2xl font-semibold transition-all duration-300 touch-manipulation min-h-[56px] disabled:opacity-50 ${
-                          shampooFrequency === "48"
+                        className={`flex-1 px-6 py-4 rounded-2xl font-semibold transition-all duration-300 touch-manipulation min-h-[56px] disabled:opacity-50 ${shampooFrequency === "48"
                             ? "bg-gradient-to-r from-accent to-accent/90 text-accent-foreground shadow-xl shadow-accent/40"
                             : "bg-muted/50 text-muted-foreground border border-border/50 hover:bg-muted"
-                        }`}
+                          }`}
                       >
                         48 hours
                       </motion.button>
@@ -349,15 +389,13 @@ const RemindersPage = () => {
                   </div>
 
                   <div
-                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
-                      shampooEnabled
+                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${shampooEnabled
                         ? "bg-accent/20 text-accent border border-accent/40"
                         : "bg-muted/50 text-muted-foreground border border-border/50"
-                    }`}
+                      }`}
                   >
-                    <span className={`w-2 h-2 rounded-full ${
-                      shampooEnabled ? "bg-accent animate-pulse" : "bg-muted-foreground/50"
-                    }`} />
+                    <span className={`w-2 h-2 rounded-full ${shampooEnabled ? "bg-accent animate-pulse" : "bg-muted-foreground/50"
+                      }`} />
                     {shampooEnabled ? "Active" : "Inactive"}
                   </div>
                 </div>
@@ -416,6 +454,44 @@ const RemindersPage = () => {
                 Make sure notifications are enabled in your device settings to receive reminders for your haircare routine.
               </p>
             </div>
+          </div>
+        </motion.div>
+        {/* Add this after the info card */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.35 }}
+          className="mt-6 p-6 rounded-2xl bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/20"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
+                <Bell className="h-4 w-4 text-accent" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-foreground mb-1">
+                  Push Notifications
+                </h4>
+                <p className="text-sm text-muted-foreground">
+                  Get notified even when the app is closed
+                </p>
+              </div>
+            </div>
+            {!pushEnabled ? (
+              <Button
+                onClick={enablePushNotifications}
+                disabled={checkingPushStatus}
+                size="sm"
+                className="bg-accent hover:bg-accent/90"
+              >
+                {checkingPushStatus ? "Checking..." : "Enable"}
+              </Button>
+            ) : (
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-5 w-5 text-green-500" />
+                <span className="text-sm text-green-500">Enabled</span>
+              </div>
+            )}
           </div>
         </motion.div>
       </div>

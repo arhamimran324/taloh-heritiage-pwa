@@ -3,12 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { getDailyTip } from "@/lib/dailyTips";
-import { Lightbulb, TrendingUp, Facebook, Mail, MessageCircle, CircleCheck as CheckCircle2 } from "lucide-react";
+import { Lightbulb, TrendingUp, Facebook, Mail, MessageCircle, CircleCheck as CheckCircle2, Sparkles, Droplets } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { format, addHours, differenceInMinutes } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { Bell, BellOff } from "lucide-react";
 
 interface ProgressMetrics {
   lastApplication: string | null;
@@ -34,10 +35,41 @@ const HomePage = () => {
   });
   const [loading, setLoading] = useState(true);
   const [marking, setMarking] = useState(false);
+const [reminderStatus, setReminderStatus] = useState<{
+  solution: boolean;
+  shampoo: boolean;
+}>({ solution: false, shampoo: false });
+const [checkingReminders, setCheckingReminders] = useState(true);
+
+const checkReminderStatus = async () => {
+  if (!user) return;
+  
+  setCheckingReminders(true);
+  try {
+    const { data, error } = await supabase
+      .from("reminder_settings")
+      .select("reminder_type, enabled")
+      .eq("user_id", user.id);
+
+    if (!error && data) {
+      const status = {
+        solution: data.find(r => r.reminder_type === "solution")?.enabled || false,
+        shampoo: data.find(r => r.reminder_type === "shampoo")?.enabled || false,
+      };
+      setReminderStatus(status);
+    }
+  } catch (error) {
+    console.error("Error checking reminder status:", error);
+  } finally {
+    setCheckingReminders(false);
+  }
+};
+
 
   useEffect(() => {
     if (user) {
       loadUserProgress();
+    checkReminderStatus(); // Add this line
 
       // Set up real-time subscription for reminder_settings changes
       const channel = supabase
@@ -299,6 +331,73 @@ const HomePage = () => {
             )}
           </CardContent>
         </Card>
+
+{/* Add this after the Today's Progress Card */}
+<Card className="border-primary/20 shadow-lg">
+  <CardHeader>
+    <CardTitle className="flex items-center gap-2">
+      <Bell className="h-5 w-5 text-primary" />
+      Reminder Status
+    </CardTitle>
+  </CardHeader>
+  <CardContent className="space-y-3">
+    {checkingReminders ? (
+      <div className="flex justify-center py-4">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+      </div>
+    ) : (
+      <>
+        <div className="flex justify-between items-center p-3 rounded-lg bg-primary/5 border border-primary/10">
+          <div className="flex items-center gap-3">
+            <Droplets className="h-5 w-5 text-primary" />
+            <span className="font-medium">Hair Solution</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {reminderStatus.solution ? (
+              <>
+                <Bell className="h-4 w-4 text-green-500" />
+                <span className="text-sm text-green-500">Active</span>
+              </>
+            ) : (
+              <>
+                <BellOff className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Inactive</span>
+              </>
+            )}
+          </div>
+        </div>
+        
+        <div className="flex justify-between items-center p-3 rounded-lg bg-accent/5 border border-accent/10">
+          <div className="flex items-center gap-3">
+            <Sparkles className="h-5 w-5 text-accent" />
+            <span className="font-medium">Shampoo & Beard Wash</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {reminderStatus.shampoo ? (
+              <>
+                <Bell className="h-4 w-4 text-green-500" />
+                <span className="text-sm text-green-500">Active</span>
+              </>
+            ) : (
+              <>
+                <BellOff className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Inactive</span>
+              </>
+            )}
+          </div>
+        </div>
+        
+        <Button
+          variant="outline"
+          className="w-full mt-2"
+          onClick={() => navigate("/reminders")}
+        >
+          Manage Reminders
+        </Button>
+      </>
+    )}
+  </CardContent>
+</Card>
 
         <Card className="border-primary/20 hover:shadow-lg transition-shadow cursor-pointer group" onClick={() => navigate("/tutorials")}>
           <CardContent className="flex items-center gap-4 p-6">
