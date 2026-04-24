@@ -34,16 +34,36 @@ self.addEventListener("push", (event) => {
         url: "/",
         timestamp: Date.now(),
       },
-      actions: data.actions || [
-        {
-          action: "view",
-          title: "View Order",
-        },
-        {
-          action: "close",
-          title: "Close",
-        },
-      ],
+      actions: (() => {
+        // Check if body contains an order name
+        const hasOrderName = data.body && (
+          data.body.includes("Order") ||
+          data.body.includes("order") ||
+          // Add your own logic to detect order name
+          /order\s+#?\w+/i.test(data.body)
+        );
+
+        if (hasOrderName) {
+          return data.actions || [
+            {
+              action: "view",
+              title: "View Order",
+            },
+            {
+              action: "close",
+              title: "Close",
+            },
+          ];
+        } else {
+          // Return only close action when no order name
+          return [
+            {
+              action: "close",
+              title: "Close",
+            },
+          ];
+        }
+      })(),
       tag: data.tag || "order-update",
       renotify: true,
       requireInteraction: true,
